@@ -60,8 +60,11 @@ jobs:
           TS_AUTHKEY: ${{ secrets.TS_AUTHKEY }}
         run: |
           # Bring up Tailscale with the provided auth key and set a unique hostname
-          & "$env:ProgramFiles\Tailscale\tailscale.exe" up --authkey=${{ secrets.TAILSCALE_AUTHKEY }} --hostname=gh-runner-$env:GITHUB_RUN_ID
-         
+          if ([string]::IsNullOrWhiteSpace($env:TS_AUTHKEY)) {
+            Write-Error "El secreto TS_AUTHKEY está vacío."
+            exit 1
+          }
+          & "$env:ProgramFiles\Tailscale\tailscale.exe" up --authkey="$env:TS_AUTHKEY" --hostname="gh-runner-$env:GITHUB_RUN_ID" --timeout=30s
           # Wait for Tailscale to assign an IP
           $tsIP = $null
           $retries = 0
